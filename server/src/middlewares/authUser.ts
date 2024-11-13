@@ -33,7 +33,7 @@ export async function authUser(req: Request, res: Response, next: NextFunction) 
       return
     }
 
-    req.user = user;
+    // req.user = user;
     next();
   } catch (error) {
     console.error(error);

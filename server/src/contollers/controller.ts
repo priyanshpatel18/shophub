@@ -2,9 +2,8 @@ import { compare, genSalt, hash } from "bcrypt";
 import { Request, RequestHandler, Response } from "express";
 import z from "zod";
 import prisma from "../db";
-import { signToken, verifyToken } from "../lib/auth";
+import { signToken } from "../lib/auth";
 import { signUpSchema } from "../lib/zod";
-import { hasUncaughtExceptionCaptureCallback } from "process";
 
 export interface JwtUser {
   _id: string;
