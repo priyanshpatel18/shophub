@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Product Sans";
+  src: url("/fonts/ProductSans.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@layer base {
+  :root {
+    --background: #e3e6e6;
+    --primary: #1f1f1f;
+    --primary-foreground: #f2f2f2;
+    --secondary: #faae3d;
+    --radius: 0.5rem;
+  }
+}
+
+body {
+  @apply bg-background text-primary font-product;
+}
