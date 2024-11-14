@@ -41,6 +41,13 @@ export default function Home() {
       <Loader isLoading={isLoading} />
       <div>
         <h1>Home</h1>
+        <div>
+          {products?.map((product, index) => (
+            <div key={index}>
+              <h2>{product}</h2>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
