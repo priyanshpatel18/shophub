@@ -11,7 +11,7 @@ export interface JwtUser {
   userName: string;
 }
 
-export const signUp = async (req: Request, res: Response) => {
+export const signUp = async (req: Request, res: Response): Promise<any> => {
   try {
     const body = req.body;
     const { email, password, userName, companyName } = signUpSchema.parse(body);
@@ -95,7 +95,7 @@ export const signUp = async (req: Request, res: Response) => {
 };
 
 
-export const signIn = async (req: Request, res: Response) => {
+export const signIn = async (req: Request, res: Response): Promise<any> => {
   try {
     const body = req.body;
     const { email, password } = signUpSchema.parse(body);
@@ -144,7 +144,7 @@ export const signIn = async (req: Request, res: Response) => {
   }
 }
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: Request, res: Response): Promise<any> => {
   try {
     const user = req.user;
     if (!user) {
@@ -164,7 +164,7 @@ export const getUser = async (req: Request, res: Response) => {
   }
 }
 
-export const getProducts = async (req: Request, res: Response) => {
+export const getProducts = async (req: Request, res: Response): Promise<any> => {
   try {
     const products = await prisma.product.findMany();
     if (!products) {
@@ -178,7 +178,7 @@ export const getProducts = async (req: Request, res: Response) => {
   }
 }
 
-export const getCart = async (req: Request, res: Response) => {
+export const getCart = async (req: Request, res: Response): Promise<any> => {
   try {
     const user = req.user;
     if (!user) {
@@ -192,7 +192,7 @@ export const getCart = async (req: Request, res: Response) => {
   }
 }
 
-export const updateCart = async (req: Request, res: Response) => {
+export const updateCart = async (req: Request, res: Response): Promise<any> => {
   try {
     const user = req.user;
     if (!user) {
