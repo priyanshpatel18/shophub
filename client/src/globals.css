@@ -9,16 +9,28 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Montserrat";
+  src: url("/fonts/Montserrat.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 @layer base {
   :root {
-    --background: #e3e6e6;
+    --background: #f2f2f2;
     --primary: #1f1f1f;
     --primary-foreground: #f2f2f2;
     --secondary: #faae3d;
+    --muted-secondary: #f0a433;
     --radius: 0.5rem;
   }
 }
 
+h1 {
+  @apply text-3xl font-semibold font-montserrat tracking-tight;
+}
+
 body {
-  @apply bg-background text-primary font-product;
+  @apply bg-custom text-primary font-montserrat;
 }

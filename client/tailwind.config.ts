@@ -23,6 +23,7 @@ const config: Config = {
         muted: {
           DEFAULT: 'var(--muted)',
           foreground: 'var(--muted-foreground)',
+          secondary: 'var(--muted-secondary)',
         },
         border: 'var(--border)',
       },
@@ -34,9 +35,23 @@ const config: Config = {
     },
     fontFamily: {
       product: ['Product Sans', 'sans-serif'],
+      montserrat: ['Montserrat', 'sans-serif'],
+    },
+    opacity: {
+      50: '0.5',
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [tailwindcssAnimate, function ({ addComponents }) {
+    addComponents({
+      ".bg-custom": {
+        backgroundImage: "url('/assets/background.svg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: 'fixed',
+      }
+    })
+  }],
 };
 
 export default config;

@@ -1,9 +1,17 @@
-import { Route, Routes, Outlet } from "react-router-dom";
-import Home from "./pages/Home";
-import Navbar from "./components/Navbar";
+import { Outlet, Route, Routes, useLocation } from "react-router-dom";
 import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
+import SignIn from "./pages/auth/SignIn";
+import Home from "./pages/Home";
+import SignUp from "./pages/auth/SignUp";
 
 function Layout() {
+  const authPages = ["/sign-in", "/sign-up"];
+  const location = useLocation();
+
+  if (authPages.includes(location.pathname)) {
+    return <Outlet />;
+  }
   return (
     <>
       <Navbar />
@@ -20,9 +28,12 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/sign-in" element={<div>Sign In</div>} />
-        <Route path="/sign-up" element={<div>Sign Up</div>} />
-        <Route path="/products/category/:category" element={<div>Products By Category</div>} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route
+          path="/products/category/:category"
+          element={<div>Products By Category</div>}
+        />
         <Route path="/products/:id" element={<div>Product Details</div>} />
         <Route path="/cart" element={<div>Cart</div>} />
       </Route>
