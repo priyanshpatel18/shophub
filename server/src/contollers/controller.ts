@@ -95,27 +95,24 @@ export const signUp = async (req: Request, res: Response) => {
 };
 
 
-export const signIn: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const signIn = async (req: Request, res: Response) => {
   try {
     const body = req.body;
     const { email, password } = signUpSchema.parse(body);
     console.log(email, password);
 
     if (!email || !password) {
-      res.json({ message: "Invalid Request" }).status(400);
-      return;
+      return res.json({ message: "Invalid Request" }).status(400);
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      res.json({ message: "User Not Found" }).status(404);
-      return;
+      return res.json({ message: "User Not Found" }).status(404);
     }
 
     const passwordMatch = await compare(password, user.password);
     if (!passwordMatch) {
-      res.json({ message: "Incorrect Password" }).status(401);
-      return;
+      return res.json({ message: "Incorrect Password" }).status(401);
     }
 
     const userData = {
@@ -131,29 +128,27 @@ export const signIn: RequestHandler = async (req: Request, res: Response): Promi
       sameSite: "strict",
     });
 
-    res.json({ message: "Welcome to Shophub" }).status(201);
+    return res.json({ message: "Welcome to Shophub" }).status(201);
   }
   catch (error) {
     console.error(error);
 
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "Invalid Password",
         errors: error.errors,
       });
-      return;
     }
 
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    return res.json({ message: "Something went wrong, Please try again" }).status(500);
   }
 }
 
-export const getUser: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const getUser = async (req: Request, res: Response) => {
   try {
     const user = req.user;
     if (!user) {
-      res.json({ message: "User Not Found" }).status(404);
-      return
+      return res.json({ message: "User Not Found" }).status(404);
     }
 
     const responseData = {
@@ -162,10 +157,10 @@ export const getUser: RequestHandler = async (req: Request, res: Response): Prom
       userName: user.userName,
       cart: user.cart
     }
-    res.json({ user: responseData }).status(200);
+    return res.json({ user: responseData }).status(200);
   } catch (error) {
     console.error(error);
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    return res.json({ message: "Something went wrong, Please try again" }).status(500);
   }
 }
 
@@ -183,40 +178,36 @@ export const getProducts = async (req: Request, res: Response) => {
   }
 }
 
-export const getCart: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const getCart = async (req: Request, res: Response) => {
   try {
     const user = req.user;
     if (!user) {
-      res.json({ message: "User Not Found" }).status(404);
-      return
+      return res.json({ message: "User Not Found" }).status(404);
     }
 
-    res.json({ cart: user.cart }).status(200);
+    return res.json({ cart: user.cart }).status(200);
   } catch (error) {
     console.error(error);
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    return res.json({ message: "Something went wrong, Please try again" }).status(500);
   }
 }
 
-export const updateCart: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const updateCart = async (req: Request, res: Response) => {
   try {
     const user = req.user;
     if (!user) {
-      res.json({ message: "User Not Found" }).status(404);
-      return
+      return res.json({ message: "User Not Found" }).status(404);
     }
 
     const { productId, updateFlag } = req.body;
 
     if (updateFlag === undefined || !productId || !user.cart) {
-      res.json({ message: "Invalid Request" }).status(400);
-      return
+      return res.json({ message: "Invalid Request" }).status(400);
     }
 
     const product = await prisma.product.findUnique({ where: { id: productId } });
     if (!product) {
-      res.json({ message: "Product Not Found" }).status(404);
-      return;
+      return res.json({ message: "Product Not Found" }).status(404);
     }
 
     if (!updateFlag) {
@@ -237,12 +228,10 @@ export const updateCart: RequestHandler = async (req: Request, res: Response): P
       });
 
       if (!updatedCart) {
-        res.json({ message: "Error Updating Cart" }).status(500);
-        return;
+        return res.json({ message: "Error Updating Cart" }).status(500);
       }
 
-      res.json({ cart: updatedCart, message: "Product Removed From Cart" }).status(200);
-      return;
+      return res.json({ cart: updatedCart, message: "Product Removed From Cart" }).status(200);
     }
     const updatedCart = await prisma.cart.update({
       where: {
@@ -261,13 +250,12 @@ export const updateCart: RequestHandler = async (req: Request, res: Response): P
     });
 
     if (!updatedCart) {
-      res.json({ message: "Error Updating Cart" }).status(500);
-      return;
+      return res.json({ message: "Error Updating Cart" }).status(500);
     }
 
-    res.json({ cart: updatedCart, message: "Product Added To Cart" }).status(200);
+    return res.json({ cart: updatedCart, message: "Product Added To Cart" }).status(200);
   } catch (error) {
     console.error(error);
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    return res.json({ message: "Something went wrong, Please try again" }).status(500);
   }
 }
