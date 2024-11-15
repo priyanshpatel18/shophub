@@ -8,34 +8,164 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid()) @map("_id") @db.ObjectId
-  userName  String
-  email     String   @unique
-  password  String
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userName   String
+  email      String    @unique
+  password   String
+  role       UserRole  @default(CUSTOMER)
+  address    Address[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  cart       Cart?     @relation("UserCart")
+  orders     Order[]
+  // Review    Review[]
+  vendor     Vendor?   @relation("UserVendor")
+  vendorId   String?   @unique @db.ObjectId
+  customer   Customer? @relation("UserCustomer")
+  customerId String?   @unique @db.ObjectId
+}
+
+enum UserRole {
+  CUSTOMER
+  VENDOR
+  ADMIN
+}
+
+model Vendor {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  companyName String
+  description String?
+  products    Product[]
+  address     Address[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String?   @unique @db.ObjectId
+  user        User?     @relation("UserVendor", fields: [userId], references: [id])
+}
+
+model Customer {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  cart      Cart?    @relation
-  cartId    String?  @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User?    @relation("UserCustomer", fields: [userId], references: [id])
 }
 
 model Cart {
-  id       String    @id @default(uuid()) @map("_id") @db.ObjectId
-  products Product[]
-  userId   String    @unique @db.ObjectId
-  User     User      @relation(fields: [userId], references: [id])
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String        @unique @db.ObjectId
+  user       User          @relation("UserCart", fields: [userId], references: [id])
+  products   CartProduct[]
+  totalPrice Float         @default(0.0)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model CartProduct {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  cartId     String  @db.ObjectId
+  cart       Cart    @relation(fields: [cartId], references: [id])
+  productId  String  @db.ObjectId
+  product    Product @relation(fields: [productId], references: [id])
+  quantity   Int     @default(1)
+  priceAtAdd Float
+}
+
+model Category {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Product {
-  id          String   @id @default(uuid()) @map("_id") @db.ObjectId
-  name        String
-  description String
-  price       Float
-  discount    Float
-  category    String
-  quantity    String
-  imageUrl    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  cartId      String?  @db.ObjectId
-  cart        Cart?    @relation(fields: [cartId], references: [id])
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String
+  price        Float
+  discount     Float          @default(0.0)
+  quantity     Int
+  imageUrl     String
+  categoryId   String?        @db.ObjectId
+  category     Category?      @relation(fields: [categoryId], references: [id])
+  vendorId     String?        @db.ObjectId
+  vendor       Vendor?        @relation(fields: [vendorId], references: [id])
+  // reviews      Review[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  CartProduct  CartProduct[]
+  OrderProduct OrderProduct[]
 }
+
+model Order {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String         @db.ObjectId
+  user            User           @relation(fields: [userId], references: [id])
+  products        OrderProduct[]
+  status          OrderStatus    @default(PENDING)
+  totalAmount     Float
+  shippingAddress Address        @relation(fields: [addressId], references: [id])
+  addressId       String         @db.ObjectId
+  // paymentInfo     PaymentInfo?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  Customer        Customer?      @relation(fields: [customerId], references: [id])
+  customerId      String?        @db.ObjectId
+}
+
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELED
+}
+
+model OrderProduct {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  orderId      String  @db.ObjectId
+  order        Order   @relation(fields: [orderId], references: [id])
+  productId    String  @db.ObjectId
+  product      Product @relation(fields: [productId], references: [id])
+  quantity     Int     @default(1)
+  priceAtOrder Float
+}
+
+model Address {
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String
+  userId     String? @db.ObjectId
+  vendorId   String? @db.ObjectId
+  orderId    String? @db.ObjectId
+  User       User?   @relation(fields: [userId], references: [id])
+  Vendor     Vendor? @relation(fields: [vendorId], references: [id])
+  Order      Order[]
+}
+
+// model PaymentInfo {
+//   id            String        @id @default(auto()) @map("_id") @db.ObjectId
+//   method        PaymentMethod
+//   status        PaymentStatus @default(PENDING)
+//   transactionId String?
+//   amount        Float
+//   orderId       String        @unique @db.ObjectId
+//   order         Order         @relation(fields: [orderId], references: [id])
+// }
+
+// enum PaymentMethod {
+//   CREDIT_CARD
+//   PAYPAL
+//   BANK_TRANSFER
+// }
+
+// enum PaymentStatus {
+//   PENDING
+//   COMPLETED
+//   FAILED
+// }

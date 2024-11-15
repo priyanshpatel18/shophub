@@ -3,7 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 import express from "express";
 import { authUser } from "./middlewares/authUser";
-import { cartRouter, productRouter, userRouter } from "./routes/router";
+import { authRouter, cartRouter, productRouter, userRouter } from "./routes/router";
 
 const app = express();
 
@@ -18,9 +18,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Routes
-app.use("/user", userRouter);
-app.use("/products", productRouter);
-app.use("/cart", authUser, cartRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
+app.use("/api/products", productRouter);
+app.use("/api/cart", authUser, cartRouter);
 
 // Connection
 const PORT: number = Number(process.env.PORT) || 5000;

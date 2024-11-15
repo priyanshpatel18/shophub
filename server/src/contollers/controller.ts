@@ -11,37 +11,59 @@ export interface JwtUser {
   userName: string;
 }
 
-export const signUp: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const signUp = async (req: Request, res: Response) => {
   try {
     const body = req.body;
-    const { email, password, userName } = signUpSchema.parse(body);
+    const { email, password, userName, companyName } = signUpSchema.parse(body);
+
+    // Check for missing fields
     if (!email || !password || !userName) {
-      res.json({ message: "Invalid Request" }).status(400);
-      return;
+      return res.status(400).json({ message: "Invalid Request" });
     }
 
     const userEmail = await prisma.user.findUnique({ where: { email } });
     if (userEmail) {
-      res.json({ message: "Email Already Exists" }).status(400);
-      return;
+      return res.status(400).json({ message: "Email Already Exists" });
     }
 
     const salt = await genSalt(10);
     const hashedPassword = await hash(password, salt);
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        userName,
-        cart: {
-          create: {}
-        }
-      },
-    });
+    let user;
+    if (!companyName) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          userName,
+          cart: {
+            create: {}
+          },
+          customer: {
+            create: {}
+          }
+        },
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          userName,
+          cart: {
+            create: {}
+          },
+          vendor: {
+            create: {
+              companyName,
+            }
+          }
+        },
+      });
+    }
+
     if (!user) {
-      res.json({ message: "Error Creating your Account" }).status(500);
-      return;
+      return res.status(500).json({ message: "Error Creating your Account" });
     }
 
     const token = signToken({
@@ -49,31 +71,36 @@ export const signUp: RequestHandler = async (req: Request, res: Response): Promi
       email: user.email,
       userName: user.userName
     });
+
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
     });
 
-    res.json({ message: "Welcome to Shophub" }).status(201);
+    return res.status(201).json({ message: "Welcome to Shophub" });
+
   } catch (error) {
     console.error(error);
+
     if (error instanceof z.ZodError) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "Validation error",
         errors: error.errors,
       });
-      return;
     }
 
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    return res.status(500).json({ message: "Something went wrong, Please try again" });
   }
 };
+
 
 export const signIn: RequestHandler = async (req: Request, res: Response): Promise<void> => {
   try {
     const body = req.body;
     const { email, password } = signUpSchema.parse(body);
+    console.log(email, password);
+
     if (!email || !password) {
       res.json({ message: "Invalid Request" }).status(400);
       return;
@@ -104,14 +131,14 @@ export const signIn: RequestHandler = async (req: Request, res: Response): Promi
       sameSite: "strict",
     });
 
-    res.json({ message: "Welcome to Shophub" }).status(200);
+    res.json({ message: "Welcome to Shophub" }).status(201);
   }
   catch (error) {
     console.error(error);
 
     if (error instanceof z.ZodError) {
       res.status(400).json({
-        message: "Validation error",
+        message: "Invalid Password",
         errors: error.errors,
       });
       return;
@@ -142,18 +169,17 @@ export const getUser: RequestHandler = async (req: Request, res: Response): Prom
   }
 }
 
-export const getProducts: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const getProducts = async (req: Request, res: Response) => {
   try {
     const products = await prisma.product.findMany();
     if (!products) {
-      res.json({ message: "Products Not Found" }).status(404);
-      return;
+      return res.json({ message: "Products Not Found" }).status(404);
     }
 
-    res.json({ products }).status(200);
+    return res.json({ products }).status(200);
   } catch (error) {
     console.error(error);
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    return res.json({ message: "Something went wrong, Please try again" }).status(500);
   }
 }
 
