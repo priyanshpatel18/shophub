@@ -120,7 +120,7 @@ export default function Home() {
       localStorage.setItem("role", "CUSTOMER");
       setIsCustomer(true);
     }
-    // fetchProducts();
+    fetchProducts();
   }, []);
 
   return isLoading ? (
