@@ -1,13 +1,15 @@
 "use client";
 
+import { ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Image from "./Image";
-import { ShoppingCart } from "lucide-react";
+import { useUser } from "@/hooks/useUser";
 
 export default function Navbar() {
   const [scrollingDown, setScrollingDown] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const { user } = useUser();
 
   const handleScroll = () => {
     if (typeof window !== "undefined") {
@@ -38,19 +40,24 @@ export default function Navbar() {
       </Link>
 
       <div className="flex gap-4 items-center">
-        <Link
-          to="/sign-in"
-          className="px-8 py-1 bg-secondary rounded-lg uppercase sm:text-md text-lg font-light tracking-wide"
-        >
-          login
-        </Link>
+        {user ? (
+          <div className="px-8 py-1 bg-secondary rounded-lg uppercase sm:text-md text-lg font-light tracking-wide flex items-center justify-center cursor-pointer hover:bg-muted-secondary">
+            {user.userName
+              .split(" ")
+              .map((name) => name[0])
+              .join("")
+              .slice(0, 2) || user.userName.slice(0, 2)}
+          </div>
+        ) : (
+          <Link
+            to="/sign-in"
+            className="px-8 py-1 bg-secondary rounded-lg uppercase sm:text-md text-lg font-light tracking-wide"
+          >
+            login
+          </Link>
+        )}
 
         <Link to="/cart">
-          {/* <Image
-          src="/assets/shoppingCart.png"
-          alt="shopping cart"
-          className="w-8 h-8"
-          /> */}
           <ShoppingCart className="w-8 h-8 text-white" />
         </Link>
       </div>

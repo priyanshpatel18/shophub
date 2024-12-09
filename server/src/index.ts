@@ -3,8 +3,19 @@ import cors from "cors";
 import "dotenv/config";
 import express from "express";
 import { authUser } from "./middlewares/authUser";
-import { authRouter, cartRouter, productRouter, userRouter } from "./routes/router";
+import {
+  addressRouter,
+  authRouter,
+  cartRouter,
+  customerRouter,
+  orderRouter,
+  paymentRouter,
+  productRouter,
+  userRouter,
+  vendorRouter
+} from "./routes/router";
 
+// App
 const app = express();
 
 // Middlewares
@@ -19,9 +30,14 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRouter);
-app.use("/api/user", userRouter);
-app.use("/api/products", productRouter);
-app.use("/api/cart", authUser, cartRouter);
+app.use("/api/user", authUser, userRouter);
+app.use("/api/vendor", vendorRouter);
+app.use("/api/product", productRouter);
+app.use("/api/customer", customerRouter);
+app.use("/api/payment", paymentRouter);
+app.use("/api/order", orderRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/address", addressRouter);
 
 // Connection
 const PORT: number = Number(process.env.PORT) || 5000;

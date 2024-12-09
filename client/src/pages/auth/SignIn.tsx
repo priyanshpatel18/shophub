@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "@/components/Image";
+import { Eye, EyeOff } from "lucide-react";
 import { useSnackbar } from "notistack";
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -12,6 +13,8 @@ export default function SignIn() {
     password: "",
   });
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,17 +27,14 @@ export default function SignIn() {
     }
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/sign-in`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(form),
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/sign-in`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
       const data = await res.json();
       if (!res.ok) {
@@ -43,14 +43,10 @@ export default function SignIn() {
         });
       }
 
-      if (res.status === 201) {
-        return enqueueSnackbar(data.message, {
-          variant: "success",
-        });
-      }
-      return enqueueSnackbar(data.message, {
-        variant: "error",
+      enqueueSnackbar(data.message, {
+        variant: "success",
       });
+      navigate("/");
     } catch (error) {
       enqueueSnackbar("Something went wrong", {
         variant: "error",
@@ -91,17 +87,35 @@ export default function SignIn() {
               />
             </label>
 
-            <label htmlFor="password" className="flex flex-col gap-1 w-full">
+            <label
+              htmlFor="password"
+              className="flex flex-col gap-1 w-full relative"
+            >
               <span className="capitalize text-sm font-semibold">Password</span>
-              <input
-                id="password"
-                className="border border-gray-600 rounded-sm p-3 bg-transparent text-lg sm:text-xl focus:outline-black"
-                placeholder="At least 8 characters"
-                type="password"
-                required
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  className="border border-gray-600 rounded-sm p-3 bg-transparent text-lg sm:text-xl focus:outline-black w-full pr-10"
+                  placeholder="At least 8 characters"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-3 flex items-center"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5 text-gray-600 hover:text-black" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-600 hover:text-black" />
+                  )}
+                </button>
+              </div>
             </label>
 
             <button

@@ -24,6 +24,7 @@
     --secondary: #faae3d;
     --muted-secondary: #f0a433;
     --radius: 0.5rem;
+    --border: #555;
   }
 }
 
@@ -32,5 +33,5 @@ h1 {
 }
 
 body {
-  @apply bg-custom text-primary font-montserrat;
+  @apply bg-background text-primary font-montserrat;
 }

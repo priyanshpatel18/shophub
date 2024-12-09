@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "@/components/Image";
+import { Eye, EyeOff } from "lucide-react";
 import { useSnackbar } from "notistack";
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function SignUp() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -13,34 +14,35 @@ export default function SignUp() {
     password: "",
     companyName: "",
   });
-  const [isVendor, setIsVendor] = useState(false);
+  const [isVendor, setIsVendor] = useState<boolean>(false);
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/auth/sign-up`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...form,
-            isVendor,
-          }),
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/sign-up`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...form,
+          isVendor,
+        }),
+      });
       const data = await res.json();
       if (!res.ok) {
         return enqueueSnackbar(data.message, {
           variant: "error",
         });
       }
+
+      navigate("/");
       return enqueueSnackbar(data.message, {
         variant: "success",
       });
@@ -99,17 +101,35 @@ export default function SignUp() {
               />
             </label>
 
-            <label htmlFor="password" className="flex flex-col gap-1 w-full">
+            <label
+              htmlFor="password"
+              className="flex flex-col gap-1 w-full relative"
+            >
               <span className="capitalize text-sm font-semibold">Password</span>
-              <input
-                id="password"
-                className="border border-gray-600 rounded-sm p-3 bg-transparent text-lg sm:text-xl focus:outline-black"
-                placeholder="At least 8 characters"
-                type="password"
-                required
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  className="border border-gray-600 rounded-sm p-3 bg-transparent text-lg sm:text-xl focus:outline-black w-full pr-10"
+                  placeholder="At least 8 characters"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-3 flex items-center"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5 text-gray-600 hover:text-black" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-600 hover:text-black" />
+                  )}
+                </button>
+              </div>
             </label>
 
             <label className="flex items-center cursor-pointer gap-2">

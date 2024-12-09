@@ -42,15 +42,7 @@ const config: Config = {
     },
   },
   plugins: [tailwindcssAnimate, function ({ addComponents }) {
-    addComponents({
-      ".bg-custom": {
-        backgroundImage: "url('/assets/background.svg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: 'fixed',
-      }
-    })
+    addComponents({})
   }],
 };
 

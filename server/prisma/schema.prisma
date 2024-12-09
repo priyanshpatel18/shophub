@@ -8,21 +8,18 @@ datasource db {
 }
 
 model User {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  userName   String
-  email      String    @unique
-  password   String
-  role       UserRole  @default(CUSTOMER)
-  address    Address[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  cart       Cart?     @relation("UserCart")
-  orders     Order[]
-  // Review    Review[]
-  vendor     Vendor?   @relation("UserVendor")
-  vendorId   String?   @unique @db.ObjectId
-  customer   Customer? @relation("UserCustomer")
-  customerId String?   @unique @db.ObjectId
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  userName  String
+  email     String     @unique
+  password  String
+  role      UserRole   @default(CUSTOMER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  cart      Cart?      @relation("UserCart")
+  address   Address[]
+  orders    Order[]
+  Vendor    Vendor[]
+  Customer  Customer[]
 }
 
 enum UserRole {
@@ -39,8 +36,8 @@ model Vendor {
   address     Address[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  userId      String?   @unique @db.ObjectId
-  user        User?     @relation("UserVendor", fields: [userId], references: [id])
+  userId      String    @db.ObjectId
+  user        User      @relation(fields: [userId], references: [id])
 }
 
 model Customer {
@@ -48,8 +45,8 @@ model Customer {
   orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId    String   @unique @db.ObjectId
-  user      User?    @relation("UserCustomer", fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Cart {
@@ -93,7 +90,6 @@ model Product {
   category     Category?      @relation(fields: [categoryId], references: [id])
   vendorId     String?        @db.ObjectId
   vendor       Vendor?        @relation(fields: [vendorId], references: [id])
-  // reviews      Review[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   CartProduct  CartProduct[]

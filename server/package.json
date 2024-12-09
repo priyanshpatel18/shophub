@@ -7,7 +7,7 @@
     "preinstall": "npx only-allow pnpm",
     "build": "prisma generate && tsc",
     "start": "node dist/index.js",
-    "dev": "concurrently \"tsc -w\" \"nodemon dist/index\""
+    "dev": "concurrently \"tsc -w\" \"nodemon -q dist/index.js\""
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -20,7 +20,7 @@
     "nodemon": "^3.1.4",
     "prisma": "5.21.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.3"
   },
   "dependencies": {
     "@prisma/client": "5.21.1",

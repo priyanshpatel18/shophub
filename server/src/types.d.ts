@@ -1,9 +1,17 @@
-import { User } from "@prisma/client"; // Import User type from Prisma
+import { Cart, User } from "@prisma/client"; // Import User type from Prisma
+
+interface ClientUser {
+  id: string;
+  email: string;
+  userName: string;
+  role: "CUSTOMER" | "VENDOR" | "ADMIN";
+  cart: Cart | null;
+}
 
 declare global {
   namespace Express {
     export interface Request {
-      user?: User & { cart?: { id: string; userId: string } | null };
+      user?: ClientUser | null;
     }
   }
 }

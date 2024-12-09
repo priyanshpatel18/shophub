@@ -1,7 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { JwtUser } from "../contollers/controller";
 import prisma from "../db";
 import { verifyToken } from "../lib/auth";
+
+interface JwtUser {
+  payload: {
+    id: string;
+    email: string;
+    userName: string;
+  }
+}
 
 export async function authUser(req: Request, res: Response, next: NextFunction) {
   const token = req.cookies.token
@@ -11,8 +18,7 @@ export async function authUser(req: Request, res: Response, next: NextFunction) 
     return
   }
 
-  const decodedToken = verifyToken(token) as JwtUser | null;
-
+  const decodedToken = verifyToken(token) as JwtUser;
   if (!decodedToken) {
     res.status(401).json({ message: "Unauthorized" });
     return;
@@ -21,10 +27,15 @@ export async function authUser(req: Request, res: Response, next: NextFunction) 
   try {
     const user = await prisma.user.findUnique({
       where: {
-        email: decodedToken.email
+        id: decodedToken.payload.id
       },
-      include: {
-        cart: true
+      select: {
+        id: true,
+        email: true,
+        userName: true,
+        role: true,
+        cart: true,
+        password: false
       }
     });
 
@@ -33,7 +44,8 @@ export async function authUser(req: Request, res: Response, next: NextFunction) 
       return
     }
 
-    // req.user = user;
+    req.user = user;
+
     next();
   } catch (error) {
     console.error(error);
