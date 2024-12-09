@@ -18,8 +18,8 @@ model User {
   cart      Cart?      @relation("UserCart")
   address   Address[]
   orders    Order[]
-  Vendor    Vendor[]
-  Customer  Customer[]
+  vendor    Vendor[]
+  customer  Customer[]
 }
 
 enum UserRole {
@@ -92,8 +92,8 @@ model Product {
   vendor       Vendor?        @relation(fields: [vendorId], references: [id])
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  CartProduct  CartProduct[]
-  OrderProduct OrderProduct[]
+  cartProduct  CartProduct[]
+  orderProduct OrderProduct[]
 }
 
 model Order {
@@ -108,7 +108,7 @@ model Order {
   // paymentInfo     PaymentInfo?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-  Customer        Customer?      @relation(fields: [customerId], references: [id])
+  customer        Customer?      @relation(fields: [customerId], references: [id])
   customerId      String?        @db.ObjectId
 }
 
@@ -139,9 +139,9 @@ model Address {
   userId     String? @db.ObjectId
   vendorId   String? @db.ObjectId
   orderId    String? @db.ObjectId
-  User       User?   @relation(fields: [userId], references: [id])
-  Vendor     Vendor? @relation(fields: [vendorId], references: [id])
-  Order      Order[]
+  user       User?   @relation(fields: [userId], references: [id])
+  vendor     Vendor? @relation(fields: [vendorId], references: [id])
+  order      Order[]
 }
 
 // model PaymentInfo {
