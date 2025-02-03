@@ -2,98 +2,33 @@
 
 import Image from "@/components/Image";
 import Loader from "@/components/Loader";
+import { useUser } from "@/hooks/useUser";
+import { useSnackbar } from "notistack";
 import { useEffect, useState } from "react";
 
-const products = [
-  {
-    id: "1",
-    name: "Product 1",
-    description: "Description 1",
-    price: 10,
-    discount: 5,
-    quantity: 10,
-    imageUrl: "https://avatarfiles.alphacoders.com/366/thumb-1920-366278.jpg",
-  },
-  {
-    id: "2",
-    name: "Product 2",
-    description: "Description 2",
-    price: 20,
-    discount: 10,
-    quantity: 5,
-    imageUrl:
-      "https://i.pinimg.com/736x/24/bd/ee/24bdeecd546a2c6b7e34857a104afe68.jpg",
-  },
-  {
-    id: "3",
-    name: "Product 3",
-    description: "Description 3",
-    price: 30,
-    discount: 15,
-    quantity: 3,
-    imageUrl:
-      "https://i.pinimg.com/736x/61/46/18/614618a4559d83a80e4934179d8eb8e9.jpg",
-  },
-  {
-    id: "4",
-    name: "Product 4",
-    description: "Description 4",
-    price: 40,
-    discount: 20,
-    quantity: 2,
-    imageUrl:
-      "https://w0.peakpx.com/wallpaper/294/226/HD-wallpaper-eren-jaeger-aot-attack-on-titan-eren-yeager-fire-season-4-shingeki-on-kyojin.jpg",
-  },
-  {
-    id: "5",
-    name: "Product 5",
-    description: "Description 5",
-    price: 50,
-    discount: 25,
-    quantity: 1,
-    imageUrl: "https://images7.alphacoders.com/673/673499.jpg",
-  },
-  {
-    id: "6",
-    name: "Product 6",
-    description: "Description 6",
-    price: 60,
-    discount: 30,
-    quantity: 0,
-    imageUrl: "https://avatarfiles.alphacoders.com/375/375542.png",
-  },
-  {
-    id: "7",
-    name: "Product 7",
-    description: "Description 7",
-    price: 9230.77,
-    discount: 35,
-    quantity: 0,
-    imageUrl:
-      "https://img.freepik.com/premium-photo/hand-drawn-cartoon-anime-cool-swimsuit-girl-illustration-summer_561641-6762.jpg?semt=ais_hybrid",
-  },
-  {
-    id: "8",
-    name: "Product 8",
-    description: "Description 8",
-    price: 80,
-    discount: 40,
-    quantity: 0,
-    imageUrl:
-      "https://live.staticflickr.com/65535/53581050678_98072c79e6_c.jpg",
-  },
-];
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  discount: number;
+  quantity: number;
+  imageUrl: string;
+  vendorId?: string;
+}
 
 export default function Home() {
-  // const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCustomer, setIsCustomer] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
+  const { user } = useUser();
 
   async function fetchProducts() {
     try {
       setIsLoading(true);
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/products`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/customer/get-products`, {
         method: "GET",
         credentials: "include",
       });
@@ -104,7 +39,7 @@ export default function Home() {
         return console.error(data.message);
       }
 
-      // setProducts(data.products);
+      setProducts(data.products);
     } catch (err) {
       console.error(err);
     } finally {
@@ -112,32 +47,80 @@ export default function Home() {
     }
   }
 
+  const handleStorageChange = () => {
+    const role = localStorage.getItem("role");
+    setIsCustomer(role === "CUSTOMER");
+
+    if (role === "CUSTOMER") fetchProducts();
+  };
+
+
   useEffect(() => {
-    localStorage.getItem("role") === "CUSTOMER"
-      ? setIsCustomer(true)
-      : setIsCustomer(false);
-    if (!localStorage.getItem("role")) {
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("localStorageUpdated", handleStorageChange);
+
+    let role = localStorage.getItem("role");
+    if (role) {
+      setIsCustomer(role === "CUSTOMER");
+    } else {
       localStorage.setItem("role", "CUSTOMER");
       setIsCustomer(true);
+      role = "CUSTOMER";
     }
-    fetchProducts();
+
+    handleStorageChange();
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("localStorageUpdated", handleStorageChange);
+    };
   }, []);
+
+  async function addToCart(productId: string) {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/cart/add-to-cart`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          productId
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return enqueueSnackbar(data.message, {
+          variant: "error",
+        })
+      }
+
+      enqueueSnackbar(data.message, {
+        variant: "success",
+      })
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   return isLoading ? (
     <Loader />
   ) : (
     <div className="min-h-screen">
       {isCustomer && (
-        <div className="p-4 lg:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="p-4 lg:p-8 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {products?.map((product, index) => (
             <div
               key={index}
-              className="flex flex-col border-2 border-border p-2 rounded-md gap-1"
+              className="flex flex-col border-2 border-border p-2 rounded-md gap-1 cursor-pointer"
+              onClick={() => {
+                alert("Product Added To Cart");
+              }}
             >
               <Image
                 src={product.imageUrl}
                 alt={product.name}
-                className="self-center w-full h-40 md:h-60 lg:h-72 object-cover"
+                className="self-center w-full h-36 md:h-56 lg:h-64 object-cover"
               />
               <p className="text-lg font-semibold">{product.name}</p>
               <p className="text-sm">{product.description}</p>
@@ -151,11 +134,35 @@ export default function Home() {
                 </p>
                 <p className="text-sm font-medium">({product.discount}%)</p>
               </div>
-              <button className="bg-secondary text-primary p-2 rounded-md hover:bg-muted-secondary">
+              <button className="bg-secondary text-primary p-2 rounded-md hover:bg-muted-secondary z-50" onClick={(e) => {
+                e.stopPropagation();
+                addToCart(product.id);
+              }}>
                 Add To Cart
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {!isCustomer && (
+        <div className="p-4 space-y-4">
+          <h1>Welcome {user?.companyName} !</h1>
+          <p>Your Products</p>
+
+          <div>
+            {user?.vendor?.products.length! > 0 ? user?.vendor?.products.map((product) => (
+              <div key={product.id}>
+
+              </div>
+            )) : (
+              <div>
+                <p className="text-gray-500 text-sm">
+                  You don't have any products listed
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

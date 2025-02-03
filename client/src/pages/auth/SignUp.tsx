@@ -42,6 +42,9 @@ export default function SignUp() {
         });
       }
 
+      if (data.role) {
+        localStorage.setItem("role", data.role);
+      }
       navigate("/");
       return enqueueSnackbar(data.message, {
         variant: "success",

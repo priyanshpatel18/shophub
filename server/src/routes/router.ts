@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as controller from "../contollers/controller";
+import { authUser } from "../middlewares/authUser";
 
 const userRouter = Router();
 const authRouter = Router();
@@ -14,7 +15,7 @@ const addressRouter = Router();
 authRouter
   .post("/sign-up", controller.signUp)
   .post("/sign-in", controller.signIn)
-  .get("/sign-out")
+  .post("/sign-out", controller.signOut)
 
 userRouter
   .get("/", controller.getUser)
@@ -25,7 +26,7 @@ vendorRouter
 
 customerRouter
   .get("/product/:productId")
-  .get("/get-products")
+  .get("/get-products", controller.getProducts);
 
 productRouter
   .post("/add-product")
@@ -41,7 +42,6 @@ paymentRouter
   .post("/pay-order")
   .post("/refund-order")
 
-
 orderRouter
   .get("/view-orders")
   .post("/dispatch-order")
@@ -51,8 +51,9 @@ orderRouter
   .delete("/cancel/:orderId")
 
 cartRouter
-  .post("/add-to-cart")
-  .put("/update-cart")
+  .get("/get-cart", authUser, controller.getCart)
+  .post("/add-to-cart", authUser, controller.addToCart)
+  .put("/update-cart", authUser, controller.updateCart)
 
 addressRouter
   .post("/add-address")
@@ -60,13 +61,5 @@ addressRouter
   .delete("/delete-address")
 
 export {
-  userRouter,
-  authRouter,
-  vendorRouter,
-  customerRouter,
-  paymentRouter,
-  orderRouter,
-  productRouter,
-  cartRouter,
-  addressRouter
+  addressRouter, authRouter, cartRouter, customerRouter, orderRouter, paymentRouter, productRouter, userRouter, vendorRouter
 };

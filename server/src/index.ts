@@ -40,7 +40,7 @@ app.use("/api/cart", cartRouter);
 app.use("/api/address", addressRouter);
 
 // Connection
-const PORT: number = Number(process.env.PORT) || 5000;
+const PORT: number = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import SignIn from "./pages/auth/SignIn";
 import Home from "./pages/Home";
 import SignUp from "./pages/auth/SignUp";
+import CartPage from "./pages/Cart";
 
 function Layout() {
   const authPages = ["/sign-in", "/sign-up"];
@@ -35,7 +36,7 @@ export default function App() {
           element={<div>Products By Category</div>}
         />
         <Route path="/products/:id" element={<div>Product Details</div>} />
-        <Route path="/cart" element={<div>Cart</div>} />
+        <Route path="/cart" element={<CartPage />} />
       </Route>
     </Routes>
   );

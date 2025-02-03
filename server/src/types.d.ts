@@ -1,4 +1,4 @@
-import { Cart, User } from "@prisma/client"; // Import User type from Prisma
+import { Cart } from "@prisma/client";
 
 interface ClientUser {
   id: string;

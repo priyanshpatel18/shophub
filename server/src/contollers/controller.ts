@@ -1,3 +1,4 @@
+import { CartProduct } from "@prisma/client";
 import { compare, genSalt, hash } from "bcrypt";
 import { Request, RequestHandler, Response } from "express";
 import z from "zod";
@@ -5,7 +6,7 @@ import prisma from "../db";
 import { signToken } from "../lib/auth";
 import { signUpSchema } from "../lib/zod";
 
-export const signUp = async (req: Request, res: Response): Promise<void> => {
+export const signUp = async (req: Request, res: Response) => {
   try {
     const body = req.body;
     const { email, password, userName, companyName } = signUpSchema.parse(body);
@@ -32,9 +33,6 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
           email,
           password: hashedPassword,
           userName,
-          cart: {
-            create: {}
-          },
           customer: {
             create: {}
           }
@@ -46,14 +44,12 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
           email,
           password: hashedPassword,
           userName,
-          cart: {
-            create: {}
-          },
           vendor: {
             create: {
               companyName
             }
-          }
+          },
+          role: "VENDOR"
         },
       });
     }
@@ -75,12 +71,10 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
       sameSite: "strict",
     });
 
-    res.status(201).json({ message: "Welcome to Shophub" });
+    res.status(201).json({ message: "Welcome to Shophub", role: user.role });
     return;
 
   } catch (error) {
-    console.error(error);
-
     if (error instanceof z.ZodError) {
       res.status(400).json({
         message: "Validation error",
@@ -89,31 +83,32 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    console.error(error);
     res.status(500).json({ message: "Something went wrong, Please try again" });
     return;
   }
 };
 
 
-export const signIn = async (req: Request, res: Response): Promise<void> => {
+export const signIn = async (req: Request, res: Response) => {
   try {
     const body = req.body;
     const { email, password } = signUpSchema.parse(body);
 
     if (!email || !password) {
-      res.json({ message: "Invalid Request" }).status(400);
+      res.status(400).json({ message: "Invalid Request" });
       return;
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      res.json({ message: "User Not Found" }).status(404);
+      res.status(404).json({ message: "User Not Found" });
       return;
     }
 
     const passwordMatch = await compare(password, user.password);
     if (!passwordMatch) {
-      res.json({ message: "Incorrect Password" }).status(401);
+      res.status(400).json({ message: "Incorrect Password" })
       return;
     }
 
@@ -130,7 +125,7 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
       sameSite: "strict",
     });
 
-    res.json({ message: "Welcome to Shophub" }).status(201);
+    res.status(201).json({ message: "Welcome to Shophub", role: user.role });
     return;
   }
   catch (error) {
@@ -144,40 +139,45 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    res.status(500).json({ message: "Something went wrong, Please try again" });
     return;
   }
 }
 
-export const getUser = async (req: Request, res: Response): Promise<void> => {
+export const signOut = async (req: Request, res: Response) => {
   try {
-    const user = req.user;
-    if (!user) {
-      res.json({ message: "User Not Found" }).status(404);
-      return;
-    }
-
-    const responseData = {
-      id: user.id,
-      email: user.email,
-      userName: user.userName,
-      role: user.role
-    }
-
-    res.json({ user: responseData }).status(200);
+    res.clearCookie("token");
+    res.status(200).json({ message: "Sign Out Successful" });
     return;
   } catch (error) {
     console.error(error);
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    res.status(500).json({ message: "Something went wrong, Please try again" });
     return;
   }
 }
 
-export const getProducts: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const getUser = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(404).json({ message: "User Not Found" });
+      return;
+    }
+
+    res.status(200).json({ user });
+    return;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong, Please try again" });
+    return;
+  }
+}
+
+export const getProducts: RequestHandler = async (req: Request, res: Response) => {
   try {
     const products = await prisma.product.findMany();
     if (!products) {
-      res.json({ message: "Products Not Found" }).status(404);
+      res.status(404).json({ message: "Products Not Found" });
       return;
     }
 
@@ -185,116 +185,230 @@ export const getProducts: RequestHandler = async (req: Request, res: Response): 
     return;
   } catch (error) {
     console.error(error);
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    res.status(500).json({ message: "Something went wrong, Please try again" });
     return;
   }
 }
 
-// export const getCart = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const user = req.user;
-//     if (!user) {
-//       res.json({ message: "User Not Found" }).status(404);
-//       return;
-//     }
-
-//     res.json({ cart: user.cart }).status(200);
-//     return;
-//   } catch (error) {
-//     console.error(error);
-//     res.json({ message: "Something went wrong, Please try again" }).status(500);
-//     return;
-//   }
-// }
-
-// export const updateCart = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const user = req.user;
-//     if (!user) {
-//       res.json({ message: "User Not Found" }).status(404);
-//       return;
-//     }
-
-//     const { productId, updateFlag } = req.body;
-
-//     if (updateFlag === undefined || !productId || !user.cart) {
-//       res.json({ message: "Invalid Request" }).status(400);
-//       return;
-//     }
-
-//     const product = await prisma.product.findUnique({ where: { id: productId } });
-//     if (!product) {
-//       res.json({ message: "Product Not Found" }).status(404);
-//       return;
-//     }
-
-//     if (!updateFlag) {
-//       const updatedCart = await prisma.cart.update({
-//         where: {
-//           id: user.cart.id
-//         },
-//         data: {
-//           products: {
-//             disconnect: {
-//               id: product.id
-//             }
-//           }
-//         },
-//         include: {
-//           products: true
-//         }
-//       });
-
-//       if (!updatedCart) {
-//         res.json({ message: "Error Updating Cart" }).status(500);
-//         return;
-//       }
-
-//       res.json({ cart: updatedCart, message: "Product Removed From Cart" }).status(200);
-//       return;
-//     }
-//     const updatedCart = await prisma.cart.update({
-//       where: {
-//         id: user.cart.id
-//       },
-//       data: {
-//         products: {
-//           connect: {
-//             id: product.id
-//           }
-//         }
-//       },
-//       include: {
-//         products: true
-//       }
-//     });
-
-//     if (!updatedCart) {
-//       res.json({ message: "Error Updating Cart" }).status(500);
-//       return;
-//     }
-
-//     res.json({ cart: updatedCart, message: "Product Added To Cart" }).status(200);
-//     return;
-//   } catch (error) {
-//     console.error(error);
-//     res.json({ message: "Something went wrong, Please try again" }).status(500);
-//     return;
-//   }
-// }
-
-export const registerBusiness = async (req: Request, res: Response): Promise<void> => {
+export const addToCart = async (req: Request, res: Response) => {
   try {
     const user = req.user;
     if (!user) {
-      res.json({ message: "User Not Found" }).status(404);
+      res.status(404).json({ message: "User Not Found" });
+      return;
+    }
+
+    const { productId } = req.body;
+    if (!productId || typeof productId !== "string") {
+      res.status(400).json({ message: "Invalid Request" });
+      return;
+    }
+
+    const product = await prisma.product.findFirst({ where: { id: productId } });
+    if (!product) {
+      res.status(404).json({ message: "Product Not Found" });
+      return;
+    }
+    let price = product.price;
+    price = price * (1 - product.discount / 100);
+
+    let cart = await prisma.cart.findUnique({
+      where: { userId: user.id },
+      include: { cartProducts: true }
+    });
+    let updatedCart;
+
+    if (cart) {
+      const existingCartProduct = cart.cartProducts.find(cp => cp.productId === product.id);
+      price = existingCartProduct ? existingCartProduct.quantity * price : price;
+
+      if (existingCartProduct) {
+        await prisma.$transaction([
+          prisma.cartProduct.update({
+            where: { id: existingCartProduct.id },
+            data: { quantity: { increment: 1 }, price }
+          }),
+          prisma.cart.update({
+            where: { id: cart.id },
+            data: { totalPrice: { increment: price } }
+          })
+        ]);
+      } else {
+        await prisma.$transaction([
+          prisma.cartProduct.create({
+            data: {
+              cartId: cart.id,
+              productId: product.id,
+              quantity: 1,
+              price
+            }
+          }),
+          prisma.cart.update({
+            where: { id: cart.id },
+            data: { totalPrice: { increment: price } }
+          })
+        ]);
+      }
+
+      updatedCart = await prisma.cart.findUnique({
+        where: { id: cart.id },
+        include: { cartProducts: true }
+      });
+    } else {
+      updatedCart = await prisma.$transaction(async (tx) => {
+        const newCart = await tx.cart.create({
+          data: {
+            userId: user.id,
+            totalPrice: price,
+            cartProducts: {
+              create: {
+                productId: product.id,
+                quantity: 1,
+                price: price
+              }
+            },
+            user: {
+              connect: {
+                id: user.id
+              }
+            }
+          },
+          include: { cartProducts: true }
+        });
+        return newCart;
+      });
+    }
+
+    res.status(200).json({ cart: updatedCart, message: "Added To Cart" });
+    return;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong, Please try again" });
+    return;
+  }
+}
+
+export const getCart = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(404).json({ message: "User Not Found" });
+      return;
+    }
+
+    res.status(200).json({ cart: user.cart });
+    return;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong, Please try again" });
+    return;
+  }
+}
+
+export const updateCart = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(404).json({ message: "User Not Found" });
+      return;
+    }
+
+    const { productId, quantity } = req.body;
+
+    if (!productId || typeof productId !== "string" || !quantity || typeof quantity !== "string") {
+      res.status(400).json({ message: "Invalid Request" });
+      return;
+    }
+
+    const product = await prisma.product.findFirst({ where: { id: productId } });
+    if (!product) {
+      res.status(404).json({ message: "Product Not Found" });
+      return;
+    }
+
+    let price = product.price;
+    price = price * (1 - product.discount / 100);
+
+    let cart = await prisma.cart.findUnique({
+      where: { userId: user.id },
+      include: {
+        cartProducts: {
+          include: {
+            product: true
+          }
+        }
+      }
+    });
+    if (!cart) {
+      res.status(404).json({ message: "Cart Not Found" });
+      return;
+    }
+
+    const existingCartProduct = cart.cartProducts.find(cp => cp.productId === product.id);
+    if (!existingCartProduct) {
+      res.status(404).json({ message: "Product Not Found In Cart" });
+      return;
+    }
+
+    let updatedCartProduct: CartProduct;
+    let newTotalPrice = cart.totalPrice;
+
+    if (parseInt(quantity) === 0) {
+      await prisma.cartProduct.delete({ where: { id: existingCartProduct.id } });
+      newTotalPrice -= existingCartProduct.quantity * price;
+    } else {
+      updatedCartProduct = await prisma.cartProduct.update({
+        where: { id: existingCartProduct.id },
+        data: { quantity: parseInt(quantity) }
+      });
+
+      newTotalPrice = 0;
+      cart.cartProducts.forEach((cp) => {
+        price = cp.product.price * (1 - cp.product.discount / 100);
+        if (cp.id === updatedCartProduct.id) {
+          newTotalPrice += updatedCartProduct.quantity * price;
+        } else {
+          newTotalPrice += cp.quantity * price;
+        }
+      })
+    }
+
+
+    const updatedCart = await prisma.cart.update({
+      where: { id: cart.id },
+      include: {
+        cartProducts: {
+          include: {
+            product: true
+          }
+        }
+      },
+      data: {
+        totalPrice: newTotalPrice
+      }
+    });
+
+    res.status(200).json({ cart: updatedCart, message: "Cart Updated" });
+    return;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong, Please try again" });
+    return;
+  }
+}
+
+export const registerBusiness = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(404).json({ message: "User Not Found" });
       return;
     }
 
   }
   catch (error) {
     console.error(error);
-    res.json({ message: "Something went wrong, Please try again" }).status(500);
+    res.status(500).json({ message: "Something went wrong, Please try again" });
     return;
   }
 }

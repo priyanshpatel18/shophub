@@ -7,6 +7,10 @@ export interface User {
   email: string;
   userName: string;
   role: "CUSTOMER" | "VENDOR" | "ADMIN";
+  companyName?: string;
+  vendor?: Vendor;
+  customer?: Customer;
+  cart?: Cart;
 }
 
 export interface Product {
@@ -22,7 +26,13 @@ export interface Product {
 
 export interface Cart {
   id: string;
-  products: Product[];
+  cartProducts: {
+    id: string;
+    quantity: number;
+    productId: string;
+    product: Product;
+    price: number;
+  }[]
   totalPrice: number;
 }
 
@@ -65,12 +75,23 @@ export function useUser() {
       return null;
     }
 
-    setUser(data.user);
+    const user = {
+      id: data.user.id,
+      email: data.user.email,
+      userName: data.user.userName,
+      role: data.user.role,
+      companyName: data.user.vendor[0] ? data.user.vendor[0].companyName : undefined,
+      vendor: data.user.vendor[0] ? data.user.vendor[0] : undefined,
+      customer: data.user.customer[0] ? data.user.customer[0] : undefined,
+      cart: data.user.cart
+    }
+
+    setUser(user);
   }
 
   useEffect(() => {
     getUser();
   }, []);
 
-  return { user };
+  return { user, setUser };
 }

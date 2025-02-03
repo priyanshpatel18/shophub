@@ -42,7 +42,10 @@ export default function SignIn() {
           variant: "error",
         });
       }
-
+      
+      if (data.role) {
+        localStorage.setItem("role", data.role);
+      }
       enqueueSnackbar(data.message, {
         variant: "success",
       });

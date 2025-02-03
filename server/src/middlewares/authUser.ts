@@ -29,14 +29,23 @@ export async function authUser(req: Request, res: Response, next: NextFunction) 
       where: {
         id: decodedToken.payload.id
       },
-      select: {
-        id: true,
-        email: true,
-        userName: true,
-        role: true,
-        cart: true,
-        password: false
-      }
+      include: {
+        cart: {
+          include: {
+            cartProducts: {
+              include: {
+                product: true
+              }
+            }
+          }
+        },
+        customer: true,
+        vendor: {
+          include: {
+            products: true
+          }
+        }
+      },
     });
 
     if (!user) {
@@ -45,7 +54,6 @@ export async function authUser(req: Request, res: Response, next: NextFunction) 
     }
 
     req.user = user;
-
     next();
   } catch (error) {
     console.error(error);

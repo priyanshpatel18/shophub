@@ -15,7 +15,8 @@ model User {
   role      UserRole   @default(CUSTOMER)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  cart      Cart?      @relation("UserCart")
+  cartId    String?    @db.ObjectId
+  cart      Cart?      @relation(fields: [cartId], references: [id])
   address   Address[]
   orders    Order[]
   vendor    Vendor[]
@@ -50,32 +51,23 @@ model Customer {
 }
 
 model Cart {
-  id         String        @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String        @unique @db.ObjectId
-  user       User          @relation("UserCart", fields: [userId], references: [id])
-  products   CartProduct[]
-  totalPrice Float         @default(0.0)
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String        @unique @db.ObjectId
+  totalPrice   Float         @default(0.0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User[]
+  cartProducts CartProduct[]
 }
 
 model CartProduct {
-  id         String  @id @default(auto()) @map("_id") @db.ObjectId
-  cartId     String  @db.ObjectId
-  cart       Cart    @relation(fields: [cartId], references: [id])
-  productId  String  @db.ObjectId
-  product    Product @relation(fields: [productId], references: [id])
-  quantity   Int     @default(1)
-  priceAtAdd Float
-}
-
-model Category {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String    @unique
-  description String?
-  products    Product[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  cartId    String  @db.ObjectId
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+  price     Float
 }
 
 model Product {
@@ -92,8 +84,17 @@ model Product {
   vendor       Vendor?        @relation(fields: [vendorId], references: [id])
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  cartProduct  CartProduct[]
   orderProduct OrderProduct[]
+  CartProduct  CartProduct[]
+}
+
+model Category {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Order {
