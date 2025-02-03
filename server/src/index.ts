@@ -20,7 +20,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin: ["http://localhost:5173", "https://shophub.priyanshpatel.site"],
+  origin: ["http://localhost:5173", "https://shophub.priyanshpatel.site/"],
   credentials: true,
   methods: ["POST", "GET", "PUT", "DELETE"],
 }));
